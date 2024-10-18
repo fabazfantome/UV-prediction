@@ -1,30 +1,30 @@
 from torch import nn, Tensor
 import torch
 
-
 class UVModel(nn.Module):
-    def __init__ (self, input: int, output: int) -> None:
-        super.__init__(
-            nn.Linear(24*6, 24*12),
+    def __init__(self) -> None:
+        super(UVModel, self).__init__()
+        self.model = nn.Sequential(
+            nn.Linear(180, 360),
             nn.ReLU(),
-            nn.Linear(24*12, 24^2),
+            nn.Linear(360, 720),
             nn.ReLU(),
-            nn.Linear(24^2, 24*6),
+            nn.Linear(720, 720),
             nn.ReLU(),
-            nn.Linear(24*6, 36),
+            nn.Linear(720, 180),
             nn.ReLU(),
-            nn.Linear(36, 9),
+            nn.Linear(180, 12),
             nn.ReLU(),
-            nn.Linear(9, 3),
-            nn.ReLU(),
-            nn.Linear(3, 1),
-            nn.Sigmoid
+            nn.Linear(12, 1),
+            nn.Sigmoid()
         )
 
+    def forward(self, x):
+        return self.model(x)
 
 
 def training(model, criterion, optimizer, lr, epochs, train_dl, val_dl):
-    optimizer = optimizer(model.parameters(), lr = lr)
+    optimizer = optimizer(model.parameters(), lr)
     for epoch in range(epochs):
         train_history : list[Tensor] = []
         val_history : list[Tensor] = []
