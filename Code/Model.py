@@ -16,7 +16,7 @@ class UVModel(nn.Module):
             nn.Linear(180, 12),
             nn.ReLU(),
             nn.Linear(12, 1),
-            nn.Sigmoid()
+            nn.ReLU()
         )
 
     def forward(self, x):
@@ -24,20 +24,28 @@ class UVModel(nn.Module):
 
 
 def training(model, criterion, optimizer, lr, epochs, train_dl, val_dl):
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    model.to(device)
     optimizer = optimizer(model.parameters(), lr)
     for epoch in range(epochs):
         train_history : list[Tensor] = []
         val_history : list[Tensor] = []
         for batch in train_dl:
-            out = model(batch[0].to('cuda'))
-            loss = criterion(out.squeeze(-1), batch[1].to(torch.float).to('cuda'))
+            input, output = batch
+            input = input.to(device)
+            output = output.to(device)
+            pred = model(input)
+            loss = criterion(pred, output)
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
             train_history.append(loss.detach())
         for batch in val_dl:
-            out = model(batch[0].to('cuda'))
-            loss = criterion(out.squeeze(-1), batch[1].to(torch.float).to('cuda'))
+            input, output = batch
+            input = input.to(device)
+            output = output.to(device)
+            pred = model(input)
+            loss = criterion(pred, output)
             val_history.append(loss.detach())
         print(f'For epoch {epoch} training loss equals: {torch.stack(train_history).mean()}')
         print(f'For epoch {epoch} val loss equals: {torch.stack(val_history).mean()}')
