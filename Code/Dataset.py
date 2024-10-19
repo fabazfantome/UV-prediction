@@ -5,6 +5,8 @@ import pandas as pd
 from torch import Tensor
 import torch
 import numpy as np
+import torch.nn.functional as F
+
 
 def funcion_date(scrap_date: Tuple[datetime, datetime]) -> List[str]:
     current_date = scrap_date[0]
@@ -41,5 +43,8 @@ class EUV_DATA(Dataset):
         return len(self.inputs) - 1
 
     def __getitem__(self, idx: int) -> Tuple[Tensor, Tensor]:
-        return torch.flatten(self.inputs[idx]), self.outputs[idx]
+        input = torch.flatten(self.inputs[idx]).to(torch.float32)
+        if input.size()[0] == 140:
+            input = F.pad(input= input, pad= (20, 20))
+        return input, self.outputs[idx].to(torch.float32)
 
